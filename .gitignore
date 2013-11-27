@@ -1,0 +1,4 @@
+*~
+*.o
+dataserver/dataserver
+*.kate-swp
