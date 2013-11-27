@@ -2,3 +2,7 @@
 *.o
 dataserver/dataserver
 *.kate-swp
+dataserver/tcpsockets
+dataserver/threads
+dataserver/wqueue
+
