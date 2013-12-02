@@ -1,5 +1,7 @@
 <?php
 
+date_default_timezone_set('UTC');
+
 class Index {
 
   const FLAG_READ = 'a';
@@ -133,13 +135,22 @@ class Index {
 
     $shm_key=$this->_shm_new_var($nx*$ny*$nhours*$nvars*4);
     
+    $ry=substr($run, 0, 4);
+    $rm=substr($run, 4, 2);
+    $rd=substr($run, 6, 2);
+    $rh=substr($run, 8, 2);
+    $run_time=mktime($rh, 0, 0, $rm, $rd, $ry, 0);
+    
     $this->_index[$domain][$run]=array(
       'status'=>'new',
       'nhours'=>$nhours,
       'nvars'=>$nvars,
       'vars'=>array(),
-      'shm_key'=>$shm_key
+      'shm_key'=>$shm_key,
+      'time'=>$run_time
     );
+    
+    ksort($this->_index[$domain]);
     
     $this->_write_index();
   }
@@ -186,6 +197,24 @@ class Index {
       throw new BadRequestException ('This run is not in index');
     }
     return $this->_index[$domain][$run];
+  }
+  
+  function get_last_run($domain) {
+    $last_run=end($this->_index[$domain]);
+    while (array_key_exists('status', $last_run) && $last_run['status']!='ok') {
+      $last_run=prev($this->_index[$domain]);
+    }
+    if (key($this->_index[$domain]) == '_p') {
+      throw new NotFoundException ('No run is available');
+    }
+    return key($this->_index[$domain]);
+  }
+
+  function set_run_status($domain, $run, $status) {
+    if (!$this->run_exists($domain, $run)) {
+      throw new BadRequestException ('This run is not in index');
+    }
+    $this->_index[$domain][$run]['status']=$status;
   }
   
   function _shm_new_var ($size) {

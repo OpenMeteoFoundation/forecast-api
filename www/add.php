@@ -1,7 +1,7 @@
 <?php
 
 $_GET['domain']='eu12';
-$_GET['run']='2013120106';
+$_GET['run']='2013120206';
 $_GET['frame']='0';
 
 $run=$_GET['run'];
@@ -14,12 +14,33 @@ $index=new Index(Index::FLAG_WRITE);
 $index->rm_run($domain, $run);
 
 
-$nhours=13;
-$nvars=3;
+$nhours=5;
+$vars = array(
+  'temp2m',
+  'rh:0',
+  'cloudpct_l',
+  'cloudpct_m',
+  'cloudpct_h',
+  'rain',
+  'pblh',
+  'press:0',
+  'wind10m_u',
+  'wind10m_v',
+  'wind_u_a:5',
+  'wind_v_a:5',
+  'wind_u_a:10',
+  'wind_v_a:10',
+  'wind_u_a:15',
+  'wind_v_a:15',
+  'wind_u_a:20',
+  'wind_v_a:20'
+);
+
+$nvars=count($vars);
 $index->add_run($domain, $run, $nhours, $nvars);
+$index->set_run_status($domain, $run, 'ok');
 
 
-  $vars = array('wind10m_u', 'wind10m_v'/*, 'rain', 'temp2m', 'rh:0'*/);
 
   $r=$index->get_run($domain, $run);
 

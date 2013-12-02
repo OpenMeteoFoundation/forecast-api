@@ -27,6 +27,7 @@ class Data {
     return unpack('f*', $binary);
   }
   
+  
   function __destruct() {
     shmop_close($this->_shm_id);
   } 
