@@ -169,6 +169,16 @@ class Index {
     unset($this->_index[$domain][$run]);
   }
   
+  function rm_old_run ($domain) {
+    $nruns=count($this->_index[$domain]);
+    if ($nruns > 3) {
+      reset($this->_index[$domain]);
+      next($this->_index[$domain]);
+      $run=key($this->_index[$domain]);
+      $this->rm_run($domain, $run);
+    }
+  }
+
   function add_var($domain, $run, $varname) {
     if ($this->var_exists($domain, $run, $varname)) {
       throw new ConflictException ('This var is already in index');

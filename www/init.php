@@ -1,6 +1,6 @@
 <?php
 
-require('../index.class.php');
+require('/opt/forecast-api/index.class.php');
 
 $index=new Index(Index::FLAG_INIT);
 

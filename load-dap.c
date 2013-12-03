@@ -23,6 +23,8 @@ void ne (int status) {
 }
 
 int main(int argc, char *argv[]) {
+
+  fprintf(stdout, "start\n");
   
   int varid;
   int ndims;
@@ -36,16 +38,24 @@ int main(int argc, char *argv[]) {
   float* shm_p;
   float* data_p;
   
+
+
   if (argc != 9) {
     fprintf(stdout, "usage: ./load-dap {SHM_KEY} {NHOURS} {NVARS} {VAR_ID} {FRAME} {URL} {VAR_NAME} {Z_LEVEL}\n");
     exit(EXIT_FAILURE);
   }
   
+  fprintf(stdout, "nc_open %s\n", argv[URL]);
+
   ne(nc_open(argv[URL], 0, &ncid));
+  fprintf(stdout, "nc_inq\n");
+
   ne(nc_inq_varid (ncid, argv[VAR_NAME], &varid));
   ne(nc_inq_varndims(ncid, varid, &ndims));
   ne(nc_inq_vardimid(ncid, varid, dimids));
-  
+ 
+  fprintf(stdout, "ndims\n");
+ 
   if (ndims==2) {
     ne(nc_inq_dimlen(ncid, dimids[0], &ny));
     ne(nc_inq_dimlen(ncid, dimids[1], &nx));
@@ -54,6 +64,8 @@ int main(int argc, char *argv[]) {
     ne(nc_inq_dimlen(ncid, dimids[2], &nx));
   }
   
+
+
   shm_key=atoi(argv[SHM_KEY]);
   shm_id=shmget(shm_key, 0, 0644);
   if (shm_id == -1) {

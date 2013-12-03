@@ -3,14 +3,21 @@
 $status=200;
 $msg='';
 
-ob_start();
+$callback=false;
+if (array_key_exists('callback', $_GET)) {
+  $callback=$_GET['callback'];
+}
+
+header('Access-Control-Allow-Origin: *');
+
+ob_start("ob_gzhandler");
 
 try {
 
-  require('../exceptions.class.php');
-  require('../index.class.php');
-  require('../data.class.php');
-  require('../projection.class.php');
+  require('/opt/forecast-api/exceptions.class.php');
+  require('/opt/forecast-api/index.class.php');
+  require('/opt/forecast-api/data.class.php');
+  require('/opt/forecast-api/projection.class.php');
 
   $index=new Index(Index::FLAG_READ);
 
@@ -23,12 +30,20 @@ try {
   api.ometfn.net/0.1/forecast/eu12/paris,fr/24h.xml
   api.ometfn.net/0.1/forecast/eu12/paris,fr/48h.xml
   */
-  $_GET['domain']='eu12';
-  $_GET['location']='40mù*.44,6';
-  $_GET['file']='full';
-  $_GET['format']='xml';
 
   // TODO: handle multiple domains
+  
+  if ($_GET['format'] == 'json') {
+    if ($callback) {
+      header('Content-type: text/javascript');
+    } else {
+      header('Content-type: application/json');
+    }
+  } else {
+    header('Content-type: application/json');
+    throw new NotFoundException('File not found');
+  }
+
   if ($_GET['domain'] != 'eu12') {
     throw new NotFoundException('Domain not found');
   }
@@ -69,7 +84,7 @@ try {
   switch ($_GET['file']) {
     case 'full':
       $start=0;
-      $stop=$start+$rparam['nhours']-1;
+      $stop=$start+$rparam['nhours'];
       break;
     case 'now':
       $start=round((time()-$rparam['time'])/3600);
@@ -88,8 +103,11 @@ try {
 
   $data=new Data($index, $domain, $run);
 
-
-  echo "{\n";
+  if ($callback) {
+    echo "$callback({\n";
+  } else {
+    echo "{\n";
+  }
   echo "\"doc\":\"http://api.ometfn.net/0.1/forecast/doc\",\n";
   echo "\"license\":\"http://api.ometfn.net/0.1/forecast/license\",\n";
   echo "\"domain\":\"$domain\",\n";
@@ -116,11 +134,11 @@ try {
   output_var('pblh', 'pblh', 0);
   output_var('pressure', 'press:0', 1);
 
-  output_wind('wind_10m', 'wind10m_u', 'wind10m_v');
-  output_wind('wind_1000m', 'wind_u_a:5', 'wind_v_a:5');
-  output_wind('wind_2000m', 'wind_u_a:10', 'wind_v_a:10');
-  output_wind('wind_3000m', 'wind_u_a:15', 'wind_v_a:15');
-  output_wind('wind_4000m', 'wind_u_a:20', 'wind_v_a:20');
+  output_wind('wind_10m_ground', 'wind10m_u', 'wind10m_v');
+  output_wind('wind_1000m_msl', 'wind_u_a:5', 'wind_v_a:5');
+  output_wind('wind_2000m_msl', 'wind_u_a:10', 'wind_v_a:10');
+  output_wind('wind_3000m_msl', 'wind_u_a:15', 'wind_v_a:15');
+  output_wind('wind_4000m_msl', 'wind_u_a:20', 'wind_v_a:20');
   
 } catch (Exception $e) {
 
@@ -141,27 +159,39 @@ try {
       $status=409;
       break;
   }
-  
+
+  header(' ', true, $status);
+
   if (get_class($e) == 'PHPException') {
     $msg='PHP Error';
   } else {
     $msg=$e->getMessage();
   }
-  echo "{\n";
+  if ($callback) {
+    echo "$callback({\n";
+  } else {
+    echo "{\n";
+  }
 }
-
-
 
 echo "\"status\":\"$status\",\n";
 echo "\"msg\":\"$msg\",\n";
-if (array_key_exists('SERVER_NAME', $_SERVER))  {
-  $srv=$_SERVER['SERVER_NAME'];
+if (array_key_exists('SERVER_ADDR', $_SERVER))  {
+  $srv=$_SERVER['SERVER_ADDR'];
 } else {
   $srv='';
 }
 echo "\"srv\":\"$srv\"\n";
-echo "}\n";
 
+if ($callback) {
+  echo "});\n";
+} else {
+  echo "}\n";
+}
+
+if ($status == 'ok') {
+  ob_end_flush();
+}
 
 function output_var($jsonname, $dapname, $round) {
   global $start;
@@ -199,12 +229,18 @@ function output_wind($jsonname, $dapname_u, $dapname_v) {
     }
     $u=$uvar[$i+1];
     $v=$vvar[$i+1];
-    $speed=sqrt($u*$u+$v*$v);
-    $dir=(atan2($v, $u)/M_PI*180+360)%360;
-    $json_speed.=round($speed,1);
-    $json_dir.=round($dir,1);
+    if ($u > 1E30 || $v > 1E30) {
+     $json_speed.='null';
+     $json_dir.='null';
+    } else {
+      $speed=sqrt($u*$u+$v*$v);
+      $dir=(atan2($v, $u)/M_PI*180+360)%360;
+      $json_speed.=round($speed,1);
+      $json_dir.=round($dir,1);
+    }
   }
   
   echo "\"{$jsonname}_speed\":[$json_speed],\n";
   echo "\"{$jsonname}_dir\":[$json_dir],\n";
 }
+
