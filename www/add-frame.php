@@ -2,7 +2,7 @@
 
 $net=substr($_SERVER['REMOTE_ADDR'], 0, 10);
 
-if ($net != '185.10.252') {
+if ($net != '185.10.252' && $_SERVER['REMOTE_ADDR'] != '10.0.3.1') {
   header(' ', false, 401);
   echo "denied\n";
   exit();
@@ -46,7 +46,11 @@ if (!$index->run_exists($domain, $run)) {
 }
   $r=$index->get_run($domain, $run);
 
-
+if (substr($_SERVER['SERVER_ADDR'], 0, 3) =='10.') {
+  $server='10.0.3.6:8001';
+} else {
+  $server='dap001.teclib.omd-infra.net';
+}
   foreach ($vars as $var) {
 
     $v=explode(':',$var);
@@ -63,7 +67,7 @@ if (!$index->run_exists($domain, $run)) {
     }
 
 
-      $filename=sprintf('http://dap001.teclib.omd-infra.net/b/%s-pp_%d_%d.nc', $domain, $run, $frame);
+      $filename=sprintf('http://%s/b/%s-pp_%d_%d.nc', $server, $domain, $run, $frame);
       $cmd=sprintf('/opt/forecast-api/load-dap %d %d %d %d %d %s %s %d', $r['shm_key'], $r['nhours'], $r['nvars'], $varid, $frame, $filename, $v[0], $zlevel);
 	
       exec($cmd, $out, $ret);
