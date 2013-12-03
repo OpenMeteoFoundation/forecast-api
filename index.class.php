@@ -2,6 +2,7 @@
 
 date_default_timezone_set('UTC');
 
+
 class Index {
 
   const FLAG_READ = 'a';
@@ -99,14 +100,14 @@ class Index {
  
   function add_domain ($domain, $params) {
     if ($this->domain_exists($domain)) {
-      throw new BadRequestException ('This domain is already in index');
+      throw new ConflictException ('This domain is already in index');
     }
     $this->_index[$domain]=array('_p'=>$params);
   }
   
   function rm_domain ($domain) {
     if (!$this->domain_exists($domain)) {
-      throw new BadRequestException ('This domain is not in index');
+      throw new NotFoundException ('This domain is not in index');
     }
     foreach ($this->_index[$domain] as $key=>$v) {
       if ($key == '_p') continue;
@@ -124,10 +125,10 @@ class Index {
  
   function add_run ($domain, $run, $nhours, $nvars) {
     if ($this->run_exists($domain, $run)) {
-      throw new BadRequestException ('This run is already in index');
+      throw new ConflictException ('This run is already in index');
     }
     if (!$this->domain_exists($domain)) {
-      throw new BadRequestException ('This domain is not in index');
+      throw new NotFoundException ('This domain is not in index');
     }
     
     $nx=$this->_index[$domain]['_p']['nx'];
@@ -157,7 +158,7 @@ class Index {
   
   function rm_run ($domain, $run) {
     if (!$this->run_exists($domain, $run)) {
-      throw new BadRequestException ('This run is not in index');
+      throw new NotFoundException ('This run is not in index');
     }
     
     $shm_key=$this->_index[$domain][$run]['shm_key'];
@@ -170,13 +171,13 @@ class Index {
   
   function add_var($domain, $run, $varname) {
     if ($this->var_exists($domain, $run, $varname)) {
-      throw new BadRequestException ('This var is already in index');
+      throw new ConflictException ('This var is already in index');
     }
     $r=$this->_index[$domain][$run];
     
     $varcount=count($r['vars']);
     if ($varcount == $r['nvars']) {
-      throw new BadRequestException ('Too many vars for this run');
+      throw new ConflictException ('Too many vars for this run');
     }
     
     $this->_index[$domain][$run]['vars'][$varname]=$varcount;
@@ -187,14 +188,14 @@ class Index {
   
   function var_exists($domain, $run, $varname) {
     if (!$this->run_exists($domain, $run)) {
-      throw new BadRequestException ('This run is not in index');
+      throw new NotFoundException ('This run is not in index');
     }
     return array_key_exists($varname, $this->_index[$domain][$run]['vars']);
   }
   
   function get_run($domain, $run) {
     if (!$this->run_exists($domain, $run)) {
-      throw new BadRequestException ('This run is not in index');
+      throw new NotFoundException ('This run is not in index');
     }
     return $this->_index[$domain][$run];
   }
@@ -212,7 +213,7 @@ class Index {
 
   function set_run_status($domain, $run, $status) {
     if (!$this->run_exists($domain, $run)) {
-      throw new BadRequestException ('This run is not in index');
+      throw new NotFoundException ('This run is not in index');
     }
     $this->_index[$domain][$run]['status']=$status;
   }
@@ -231,7 +232,7 @@ class Index {
   
   function get_params($domain) {
      if (!$this->domain_exists($domain)) {
-      throw new BadRequestException ('This domain is already in index');
+      throw new ConflictException ('This domain is already in index');
     }
     return $this->_index[$domain]['_p'];
   }

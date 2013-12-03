@@ -1,17 +1,18 @@
 <?php
 
 $_GET['domain']='eu12';
-$_GET['run']='2013120206';
+$_GET['run']='2013120300';
 $_GET['frame']='0';
 
 $run=$_GET['run'];
 $domain=$_GET['domain'];
 $frame=$_GET['frame'];
 
+require('../exceptions.class.php');
 require('../index.class.php');
 $index=new Index(Index::FLAG_WRITE);
 
-$index->rm_run($domain, $run);
+//$index->rm_run($domain, $run);
 
 
 $nhours=5;
@@ -62,9 +63,11 @@ $index->set_run_status($domain, $run, 'ok');
 	
       exec($cmd, $out, $ret);
       if ($ret != 0) {
-	echo "ERROR : $cmd\n";
+      	echo "ERROR $var $frame\n";
+	echo "$cmd\n";
+      } else {
+	echo "ok $var $frame\n";
       }
-      echo "ok $var $frame\n";
     }
 
       
