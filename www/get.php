@@ -142,8 +142,9 @@ try {
   
 } catch (Exception $e) {
 
-  ob_end_clean();
-  
+  ob_get_clean();
+  ob_start("ob_gzhandler");
+
   switch(get_class($e)) {
     case 'ShmException':
     case 'PHPException':
@@ -189,9 +190,6 @@ if ($callback) {
   echo "}\n";
 }
 
-if ($status == 'ok') {
-  ob_end_flush();
-}
 
 function output_var($jsonname, $dapname, $round) {
   global $start;
