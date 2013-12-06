@@ -49,7 +49,7 @@ try {
   }
   $domain=$_GET['domain'];
 
-  $pattern='^((?P<lat>[\d\.]+),(?P<lon>[\d\.]+))|((?P<city>.+),(?P<country>[\w]+))|(?P<id>\d+)^';
+  $pattern='^((?P<lat>-?[\d\.]+),(?P<lon>-?[\d\.]+))|((?P<city>.+),(?P<country>[\w]+))|(?P<id>\d+)^';
   if (!preg_match($pattern, $_GET['location'], $matches)) {
     throw new BadRequestException('Bad format for location');
   }
