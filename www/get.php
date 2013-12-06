@@ -69,7 +69,7 @@ try {
     $km=round($xy['x_error']/1000);
     throw new NotFoundException("The point you requested is x:$km km out of $domain domain.");  
   }
-  if (abs($xy['x_error']) >= 12000) {
+  if (abs($xy['y_error']) >= 12000) {
     $km=round($xy['y_error']/1000);
     throw new NotFoundException("The point you requested is y:$km km out of $domain domain.");  
   }
