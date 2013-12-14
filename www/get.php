@@ -232,7 +232,7 @@ function output_wind($jsonname, $dapname_u, $dapname_v) {
      $json_dir.='null';
     } else {
       $speed=sqrt($u*$u+$v*$v);
-      $dir=(atan2($v, $u)/M_PI*180+360)%360;
+      $dir=(360-atan2($v, $u)/M_PI*180+270)%360;
       $json_speed.=round($speed,1);
       $json_dir.=round($dir,1);
     }
